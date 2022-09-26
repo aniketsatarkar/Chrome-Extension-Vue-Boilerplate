@@ -5,4 +5,4 @@ function polling() {
   setTimeout(polling, 1000 * 10);
 }
 
-polling();
+// polling();

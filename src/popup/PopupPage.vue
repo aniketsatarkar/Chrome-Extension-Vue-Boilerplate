@@ -29,7 +29,7 @@ export default class PopupPage extends Vue {
 
   countAdd(n: number) {
     this.count += n;
-    chrome.browserAction.setBadgeText({ text: `${this.count}` });
+    chrome.action.setBadgeText({ text: `${this.count}`});
   }
 
   alertCurrentTab() {
@@ -51,6 +51,7 @@ export default class PopupPage extends Vue {
     this.countAdd(0);
 
     chrome.tabs.query(currentActivePageQueryInfo, function (tabs) {
+      console.log('chrome.tabs : ', tabs);
       self.currentTab = tabs[0];
       self.pageId = self.currentTab.id;
       self.pageUrl = self.currentTab.url;
