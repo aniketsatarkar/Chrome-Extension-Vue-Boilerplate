@@ -1,4 +1,5 @@
-chrome.runtime.onMessage.addListener(function (
+chrome.runtime.onMessage.addListener(
+  function (
   msg: OptionsPageData,
   sender,
   sendResponse

@@ -26,6 +26,10 @@
   "permissions": [
     "storage",
     "tabs",
-    "bookmarks"
+    "activeTab",
+    "bookmarks",
+    "scripting",
+    "alarms",
+    "notifications"
   ]
 }

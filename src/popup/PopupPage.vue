@@ -1,61 +1,75 @@
 <template>
   <div class="popup-page">
-    <p>Current tab ID: {{ pageId }}</p>
-    <p>Current tab URL: {{ pageUrl }}</p>
-    <p>
-        <input type="button" value="count+1" @click="countAdd(1)"></input>
-        <input type="button" value="count-1" @click="countAdd(-1)"></input>
-        <input type="button" value="Alert current tab id" @click="alertCurrentTab"></input>
-    </p>
+    <template v-if="!isPlaying">
+      <p>
+        <textarea
+          rows="10"
+          v-model="text"
+          placeholder="Past the text here..."
+        ></textarea>
+      </p>
+      <p>
+        <button @click="play">Play</button>
+      </p>
+    </template>
+    <template v-else>
+      <p>
+        <button @click="pause">Pause</button>
+        <button @click="resume">Resume</button>
+        <button @click="cancel">Cancel</button>
+      </p>
+      <div style="width: calc(100vw - 20px)">
+        {{ runningText }}
+      </div>
+    </template>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Vue } from "vue-property-decorator";
 
-const currentActivePageQueryInfo = {
-  active: true,
-  currentWindow: true,
-};
-
-@Component({
-  components: {},
-})
 export default class PopupPage extends Vue {
-  count = 0;
-  currentTab: chrome.tabs.Tab;
-  pageId = 0;
-  pageUrl = "";
+  text = "";
+  runningText = "";
+  TTS = null;
+  isPlaying = false;
 
-  countAdd(n: number) {
-    this.count += n;
-    chrome.action.setBadgeText({ text: `${this.count}`});
+  play() {
+    this.TTS = new SpeechSynthesisUtterance();
+
+    this.TTS.onboundary = (e) => {
+      const start = e.charIndex;
+      const end = e.charIndex + e.charLength;
+      this.runningText += this.text.substring(start, end) + " ";
+    };
+
+    this.TTS.onend = function () {
+      this.TTS = null;
+      this.runningText = "";
+      this.isPlaying = false;
+    };
+
+    this.TTS.text = this.text;
+    window.speechSynthesis.speak(this.TTS);
+    this.isPlaying = true;
   }
 
-  alertCurrentTab() {
-    chrome.tabs.sendMessage(
-      this.currentTab.id,
-      {
-        tab: this.currentTab,
-      },
-      function (msg) {
-        console.log("Response message:", msg);
-      }
-    );
+  pause() {
+    window.speechSynthesis.pause();
+  }
+
+  resume() {
+    window.speechSynthesis.resume();
+  }
+
+  cancel() {
+    window.speechSynthesis.cancel();
+    this.isPlaying = false;
+    this.runningText = "";
   }
 
   mounted() {
-    var self = this;
-
-    // Init badge text
-    this.countAdd(0);
-
-    chrome.tabs.query(currentActivePageQueryInfo, function (tabs) {
-      console.log('chrome.tabs : ', tabs);
-      self.currentTab = tabs[0];
-      self.pageId = self.currentTab.id;
-      self.pageUrl = self.currentTab.url;
-    });
+    // ...
   }
 }
 </script>
@@ -63,5 +77,16 @@ export default class PopupPage extends Vue {
 <style lang="scss" scoped>
 .popup-page {
   width: 400px;
+}
+textarea {
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+textarea {
+  width: calc(100vw - 20px);
+  max-width: 100%;
+  line-height: 1.5;
+  border-radius: 5px;
+  border: 1px solid #ccc;
 }
 </style>
